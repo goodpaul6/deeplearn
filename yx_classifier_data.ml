@@ -4,7 +4,7 @@
 type labeled_point = { x : float; y : float; label : [ `Above | `Below ] }
 
 let init count x_fn y_fn =
-  Array.init count (fun i ->
+  List.init count (fun i ->
       let x = x_fn i in
       let y = y_fn i in
       let line_y = x in

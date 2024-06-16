@@ -33,7 +33,7 @@ let data_js t write_fn =
           write_fn @@ Printf.sprintf "{ x: %f, y: %f }," x y
         done;
         write_fn
-        @@ Printf.sprintf "],backgroundColor: '%s'}" ds.background_color
+        @@ Printf.sprintf "],backgroundColor: '%s'}," ds.background_color
       done);
   write_fn "]}"
 
