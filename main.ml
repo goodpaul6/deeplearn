@@ -3,15 +3,17 @@ let _sig_f x = 1.0 /. (1.0 +. exp (-.x))
 
 let nand_net =
   Neural_net.create
-    [| [| 1.0; 0.0; -2.0 |]; [| 0.0; 1.0; -2.0 |]; [| 0.0; 0.0; 1.0 |] |]
+    (Linalg.mat_of_row_major_arrays
+       [| [| 1.0; 0.0; -2.0 |]; [| 0.0; 1.0; -2.0 |]; [| 0.0; 0.0; 1.0 |] |])
     [| 0.0; 0.0; 3.0 |] percep_f
 
 let example_dot =
-  Mat.dot
-    [| [| 2.0; 0.0; 0.0 |]; [| 0.0; 2.0; 0.0 |]; [| 0.0; 0.0; 2.0 |] |]
+  Linalg.mul_mat_vec
+    (Linalg.mat_of_row_major_arrays
+       [| [| 2.0; 0.0; 0.0 |]; [| 0.0; 2.0; 0.0 |]; [| 0.0; 0.0; 2.0 |] |])
     [| 1.0; 1.0; 1.0 |]
 
-let example_add = Mat.add [| 1.0; 0.0; 0.0 |] [| 1.0; 1.0; -1.0 |]
+let example_add = Linalg.add_vec_vec [| 1.0; 0.0; 0.0 |] [| 1.0; 1.0; -1.0 |]
 let example_nand_net = Neural_net.prop [| 1.0; 0.0; 0.0 |] nand_net
 let example_nand_net_2 = Neural_net.prop [| 0.0; 1.0; 0.0 |] nand_net
 let example_nand_net_3 = Neural_net.prop [| 1.0; 1.0; 0.0 |] nand_net
