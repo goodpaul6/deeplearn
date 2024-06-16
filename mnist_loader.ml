@@ -1,4 +1,4 @@
-type t = {
+type data = {
   label_data : Bytes.t;
   image_data : Bytes.t;
   image_count : int;
