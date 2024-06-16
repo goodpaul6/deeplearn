@@ -36,9 +36,8 @@ let () =
 let () =
   let f = open_out_bin "test.bmp" in
   let bmp = Bmp.create_filled 100 100 0xff 0xff 0xff in
-  Bmp.plot bmp 0 0 0xff 0 0;
-  Bmp.plot bmp 1 0 0xff 0 0;
-  Bmp.plot bmp 2 0 0xff 0 0;
+  Bmp.fill_rect bmp 0 0 50 50 0xff 0 0;
+  Bmp.plot_line bmp 0 0 50 50 0 0xff 0;
   Bmp.write bmp f;
   close_out f
 
