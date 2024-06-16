@@ -1,19 +1,12 @@
-<html>
-    <style>
-        body {
-            background: black;
-        }
-        img {
-            image-rendering: optimizeSpeed;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: -o-crisp-edges;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: pixelated;
-            image-rendering: optimize-contrast;
-            -ms-interpolation-mode: nearest-neighbor;
-        }
-    </style>
-    <body>
-        <img src="test.bmp" />
-    </body>
-</html>
+
+<div>
+  <canvas id="chart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('chart');
+  new Chart(ctx, 
+{type: 'scatter',data: {datasets: [{ label: 'Test',data: [{ x: -10.000000, y: 0.000000 },{ x: 0.000000, y: 10.000000 },{ x: 10.000000, y: 5.000000 },{ x: 0.500000, y: 5.500000 },],backgroundColor: 'rgb(255, 99, 132)'}]}, options: { scales: { x: { type: 'linear', position: 'bottom' } } }}
+  )
+</script>

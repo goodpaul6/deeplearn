@@ -34,11 +34,23 @@ let () =
   Printf.printf "percep = %f\n" (Percep.guess p [| -1.0; 0.5 |])
 
 let () =
-  let f = open_out_bin "test.bmp" in
-  let bmp = Bmp.create_filled 100 100 0xff 0xff 0xff in
-  Bmp.fill_rect bmp 0 0 50 50 0xff 0 0;
-  Bmp.plot_line bmp 0 0 50 50 0 0xff 0;
-  Bmp.write bmp f;
+  let f = open_out "index.html" in
+  Plotgen.(
+    let plot =
+      Scatter
+        {
+          datasets =
+            [|
+              {
+                label = "Test";
+                points =
+                  [| (-10.0, 0.0); (0.0, 10.0); (10.0, 5.0); (0.5, 5.5) |];
+                background_color = "rgb(255, 99, 132)";
+              };
+            |];
+        }
+    in
+    write_oc plot f);
   close_out f
 
 let () =
