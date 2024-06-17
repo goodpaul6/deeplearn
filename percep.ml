@@ -11,5 +11,14 @@ let train t inputs target =
   let guess = guess t inputs in
   let error = target -. guess in
   for i = 0 to Array.length inputs - 1 do
-    t.weights.(i) <- error *. t.weights.(i) *. t.learning_rate
+    (* If error is positive, what does that mean? Means our guess was -1 when
+       it should've been 1. That means weight * input was probably too low.
+
+       What proportion of that error was this weight's responsibility?
+
+       Well, this weight is multiplied by input to get the sum, so whatever the
+       input is that's the "proportion" of the error this weight is responsible for.
+       Hence, we adjust the weight by error * input, adding in the learning rate
+       so as not to overshoot. *)
+    t.weights.(i) <- t.weights.(i) +. (error *. inputs.(i) *. t.learning_rate)
   done

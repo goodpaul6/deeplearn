@@ -7,13 +7,14 @@ type scatter_dataset = {
   background_color : string;
 }
 
-type t = Scatter of { datasets : scatter_dataset array }
+type t = Scatter of { desc : string option; datasets : scatter_dataset array }
 
-let preamble chart_id =
+let preamble chart_id desc =
   Printf.sprintf
     {|
 <div style="padding: 100">
-  <h2>%s</h2>
+  <h1>%s</h1>
+  %s
   <canvas id="%s"></canvas>
 </div>
 
@@ -23,12 +24,14 @@ let preamble chart_id =
     const ctx = document.getElementById('%s');
     new Chart(ctx, 
 |}
-    chart_id chart_id chart_id
+    chart_id
+    (match desc with Some s -> Printf.sprintf "<p>%s</p>" s | None -> "")
+    chart_id chart_id
 
 let data_js t write_fn =
   write_fn "{datasets: [";
   (match t with
-  | Scatter { datasets } ->
+  | Scatter { datasets; _ } ->
       for i = 0 to Array.length datasets - 1 do
         let ds = datasets.(i) in
         write_fn @@ Printf.sprintf "{ label: '%s',data: [" ds.label;
@@ -57,8 +60,11 @@ let postamble = {|
 </script>
 |}
 
+let get_desc t = match t with Scatter { desc; _ } -> desc
+
 let write t chart_id write_fn =
-  write_fn (preamble chart_id);
+  let desc = get_desc t in
+  write_fn (preamble chart_id desc);
   config_js t write_fn;
   write_fn postamble
 
