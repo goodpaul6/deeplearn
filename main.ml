@@ -2,7 +2,11 @@ let percep =
   Random.self_init ();
   Percep.init_rand 2
 
-let () = Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5 |])
+let () =
+  Array.iter (fun v -> Printf.printf "%f," v) percep.weights;
+  print_newline ();
+  Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5 |])
+
 let points = Yx_classifier_data.init_rand 100
 
 let split_by_label pts =

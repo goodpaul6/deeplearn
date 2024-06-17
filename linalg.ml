@@ -29,6 +29,6 @@ let add_vec_vec a b = Array.init (Array.length a) (fun i -> a.(i) +. b.(i))
 let dot_vec_vec a b =
   let sum = ref 0.0 in
   for i = 0 to Array.length a - 1 do
-    sum := a.(i) *. b.(i)
+    sum := !sum +. (a.(i) *. b.(i))
   done;
   !sum
