@@ -3,13 +3,12 @@
 
 type labeled_point = { x : float; y : float; label : float }
 
-let init count x_fn y_fn =
+let init count x_fn y_fn above_fn =
   List.init count (fun i ->
       let x = x_fn i in
       let y = y_fn i in
-      let line_y = x in
-      { x; y; label = (if y >= line_y then 1.0 else -1.0) })
+      { x; y; label = (if above_fn x y then 1.0 else -1.0) })
 
-let init_rand count =
-  let f _ = Random.float 1.0 in
-  init count f f
+let init_rand count above_fn =
+  let f _ = Random.float 2.0 -. 1.0 in
+  init count f f above_fn

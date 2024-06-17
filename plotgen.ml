@@ -1,13 +1,23 @@
 (* Interactive plots by generating HTML/JS *)
 
-type scatter_dataset = {
+type dataset = {
+  (* TODO(Apaar): Use variant for this *)
+  type_ : string;
   label : string;
   (* Array of x, y *)
-  points : (float * float) array;
+  data : (float * float) array;
   background_color : string;
 }
 
-type t = Scatter of { desc : string option; datasets : scatter_dataset array }
+type t = {
+  id : string;
+  desc : string option;
+  datasets : dataset array;
+  x_min : float option;
+  y_min : float option;
+  x_max : float option;
+  y_max : float option;
+}
 
 let preamble chart_id desc =
   Printf.sprintf
@@ -30,29 +40,35 @@ let preamble chart_id desc =
 
 let data_js t write_fn =
   write_fn "{datasets: [";
-  (match t with
-  | Scatter { datasets; _ } ->
-      for i = 0 to Array.length datasets - 1 do
-        let ds = datasets.(i) in
-        write_fn @@ Printf.sprintf "{ label: '%s',data: [" ds.label;
-        for pi = 0 to Array.length ds.points - 1 do
-          let x, y = ds.points.(pi) in
-          write_fn @@ Printf.sprintf "{ x: %f, y: %f }," x y
-        done;
-        write_fn
-        @@ Printf.sprintf "],backgroundColor: '%s'}," ds.background_color
-      done);
+  for i = 0 to Array.length t.datasets - 1 do
+    let ds = t.datasets.(i) in
+    write_fn
+    @@ Printf.sprintf "{ type: '%s',label: '%s',data: [" ds.type_ ds.label;
+    for pi = 0 to Array.length ds.data - 1 do
+      let x, y = ds.data.(pi) in
+      write_fn @@ Printf.sprintf "{ x: %f, y: %f }," x y
+    done;
+    write_fn @@ Printf.sprintf "],backgroundColor: '%s'}," ds.background_color
+  done;
   write_fn "]}"
 
+let min_max_js min_opt max_opt =
+  match (min_opt, max_opt) with
+  | None, None -> ""
+  | Some a, None -> Printf.sprintf "min: %f," a
+  | None, Some b -> Printf.sprintf "max: %f," b
+  | Some a, Some b -> Printf.sprintf "min: %f, max: %f, " a b
+
 let config_js t write_fn =
-  write_fn "{";
-  (match t with
-  | Scatter _ ->
-      write_fn "type: 'scatter',data: ";
-      data_js t write_fn;
-      write_fn
-        ", options: { scales: { x: { type: 'linear', position: 'bottom' } } }");
-  write_fn "}"
+  write_fn "{ data: ";
+  data_js t write_fn;
+  let min_max_x = min_max_js t.x_min t.x_max in
+  let min_max_y = min_max_js t.y_min t.y_max in
+  write_fn
+  @@ Printf.sprintf
+       ", options: { scales: { x: { type: 'linear', position: 'bottom', %s }, \
+        y: { %s }}}}"
+       min_max_x min_max_y
 
 let postamble = {|
     )
@@ -60,14 +76,11 @@ let postamble = {|
 </script>
 |}
 
-let get_desc t = match t with Scatter { desc; _ } -> desc
-
-let write t chart_id write_fn =
-  let desc = get_desc t in
-  write_fn (preamble chart_id desc);
+let write t write_fn =
+  write_fn (preamble t.id t.desc);
   config_js t write_fn;
   write_fn postamble
 
-let write_oc t chart_id oc =
+let write_oc t oc =
   let write_fn s = output_string oc s in
-  write t chart_id write_fn
+  write t write_fn

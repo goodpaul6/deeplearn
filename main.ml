@@ -8,7 +8,13 @@ let print_weights p =
   print_newline ()
 
 let () = Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5 |])
-let points = Yx_classifier_data.init_rand 100
+let line_f x = (3.0 *. x) +. 2.0
+
+let points =
+  Yx_classifier_data.init_rand 100 (fun x y ->
+      (* y = 3x + 2 *)
+      let line_y = line_f x in
+      y >= line_y)
 
 let split_by_label pts =
   let open Yx_classifier_data in
@@ -22,25 +28,37 @@ let plot_labeled_points points chart_id desc oc =
   let above_points, below_points = split_by_label points in
   Plotgen.(
     let plot =
-      Scatter
-        {
-          desc;
-          datasets =
-            [|
-              {
-                label = "Above";
-                points = above_points;
-                background_color = "rgb(99, 255, 132)";
-              };
-              {
-                label = "Below";
-                points = below_points;
-                background_color = "rgb(255, 99, 132)";
-              };
-            |];
-        }
+      {
+        id = chart_id;
+        desc;
+        x_min = Some (-1.0);
+        y_min = Some (-1.0);
+        x_max = Some 1.0;
+        y_max = Some 1.0;
+        datasets =
+          [|
+            {
+              type_ = "scatter";
+              label = "Above";
+              data = above_points;
+              background_color = "rgb(99, 255, 132)";
+            };
+            {
+              type_ = "scatter";
+              label = "Below";
+              data = below_points;
+              background_color = "rgb(255, 99, 132)";
+            };
+            {
+              type_ = "line";
+              label = "Line";
+              data = [| (-1.0, line_f (-1.0)); (1.0, line_f 1.0) |];
+              background_color = "rgb(132, 99, 255)";
+            };
+          |];
+      }
     in
-    write_oc plot chart_id oc)
+    write_oc plot oc)
 
 let train_on_all_points () =
   let open Yx_classifier_data in
