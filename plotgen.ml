@@ -9,17 +9,21 @@ type scatter_dataset = {
 
 type t = Scatter of { datasets : scatter_dataset array }
 
-let preamble =
-  {|
-<div>
-  <canvas id="chart"></canvas>
+let preamble chart_id =
+  Printf.sprintf
+    {|
+<div style="padding: 100">
+  <h2>%s</h2>
+  <canvas id="%s"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  const ctx = document.getElementById('chart');
-  new Chart(ctx, 
+  {
+    const ctx = document.getElementById('%s');
+    new Chart(ctx, 
 |}
+    chart_id chart_id chart_id
 
 let data_js t write_fn =
   write_fn "{datasets: [";
@@ -48,15 +52,16 @@ let config_js t write_fn =
   write_fn "}"
 
 let postamble = {|
-  )
+    )
+  }
 </script>
 |}
 
-let write t write_fn =
-  write_fn preamble;
+let write t chart_id write_fn =
+  write_fn (preamble chart_id);
   config_js t write_fn;
   write_fn postamble
 
-let write_oc t oc =
+let write_oc t chart_id oc =
   let write_fn s = output_string oc s in
-  write t write_fn
+  write t chart_id write_fn
