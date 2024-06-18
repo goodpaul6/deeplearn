@@ -1,14 +1,17 @@
 let percep =
   Random.self_init ();
-  Percep.init_rand 2
+  (* 3 weights because 3rd one for the bias *)
+  Percep.init_rand 3
 
 let print_weights p =
   print_string "percep_weights = ";
   Array.iter (fun v -> Printf.printf "%f," v) Percep.(p.weights);
   print_newline ()
 
-let () = Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5 |])
-let line_f x = (3.0 *. x) +. 2.0
+let () =
+  Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5; 1.0 |])
+
+let line_f x = (0.3 *. x) +. 0.2
 
 let points =
   Yx_classifier_data.init_rand 100 (fun x y ->
@@ -24,7 +27,14 @@ let split_by_label pts =
   ( above |> List.map to_tuple |> Array.of_list,
     below |> List.map to_tuple |> Array.of_list )
 
-let plot_labeled_points points chart_id desc oc =
+let guessed_line_y x =
+  Percep.(
+    let w0 = percep.weights.(0) in
+    let w1 = percep.weights.(1) in
+    let w2 = percep.weights.(2) in
+    ((w0 *. x) +. w2) /. -.w1)
+
+let plot_labeled_points ?(show_guessed_line = false) points chart_id desc oc =
   let above_points, below_points = split_by_label points in
   Plotgen.(
     let plot =
@@ -36,33 +46,50 @@ let plot_labeled_points points chart_id desc oc =
         x_max = Some 1.0;
         y_max = Some 1.0;
         datasets =
-          [|
-            {
-              type_ = "scatter";
-              label = "Above";
-              data = above_points;
-              background_color = "rgb(99, 255, 132)";
-            };
-            {
-              type_ = "scatter";
-              label = "Below";
-              data = below_points;
-              background_color = "rgb(255, 99, 132)";
-            };
-            {
-              type_ = "line";
-              label = "Line";
-              data = [| (-1.0, line_f (-1.0)); (1.0, line_f 1.0) |];
-              background_color = "rgb(132, 99, 255)";
-            };
-          |];
+          List.filter Option.is_some
+            [
+              Some
+                {
+                  type_ = "scatter";
+                  label = "Above";
+                  data = above_points;
+                  background_color = "rgb(99, 255, 132)";
+                };
+              Some
+                {
+                  type_ = "scatter";
+                  label = "Below";
+                  data = below_points;
+                  background_color = "rgb(255, 99, 132)";
+                };
+              Some
+                {
+                  type_ = "line";
+                  label = "Line";
+                  data = [| (-1.0, line_f (-1.0)); (1.0, line_f 1.0) |];
+                  background_color = "rgb(132, 99, 255)";
+                };
+              (if show_guessed_line then
+                 Some
+                   {
+                     type_ = "line";
+                     label = "Guessed Line";
+                     data =
+                       [|
+                         (-1.0, guessed_line_y (-1.0)); (1.0, guessed_line_y 1.0);
+                       |];
+                     background_color = "rgb(99, 255, 255)";
+                   }
+               else None);
+            ]
+          |> List.map Option.get |> Array.of_list;
       }
     in
     write_oc plot oc)
 
 let train_on_all_points () =
   let open Yx_classifier_data in
-  List.iter (fun v -> Percep.train percep [| v.x; v.y |] v.label) points;
+  List.iter (fun v -> Percep.train percep [| v.x; v.y; 1.0 |] v.label) points;
   print_weights percep
 
 let guess_points () =
@@ -71,19 +98,20 @@ let guess_points () =
       let open Yx_classifier_data in
       let x = v.x in
       let y = v.y in
-      let guess = Percep.guess percep [| x; y |] in
+      (* 1.0 for the bias *)
+      let guess = Percep.guess percep [| x; y; 1.0 |] in
       { x; y; label = guess } :: acc)
     [] points
 
 let () =
   let f = open_out "index.html" in
   let guessed = guess_points () in
-  for _ = 0 to 20 do
+  for _ = 0 to 50 do
     train_on_all_points ()
   done;
   let trained_guesses = guess_points () in
   plot_labeled_points points "training_data" None f;
   plot_labeled_points guessed "guesses" None f;
-  plot_labeled_points trained_guesses "trained_guesses"
-    (Some "Ran 20 iterations of training") f;
+  plot_labeled_points ~show_guessed_line:true trained_guesses "trained_guesses"
+    (Some "Ran 50 iterations of training") f;
   close_out f
