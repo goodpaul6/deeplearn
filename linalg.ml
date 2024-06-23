@@ -24,7 +24,8 @@ let mat_transpose mat =
   mat_init mat.cols mat.rows (fun t_row t_col -> mat $. (t_col, t_row))
 
 let mul_mat_vec mat vec =
-  Array.init (Array.length vec) (fun row ->
+  assert (Array.length vec = mat.cols);
+  Array.init mat.rows (fun row ->
       let sum = ref 0.0 in
       for col = 0 to mat.cols - 1 do
         sum := !sum +. ((mat $. (row, col)) *. vec.(col))

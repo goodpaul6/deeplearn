@@ -3,13 +3,18 @@ let percep =
   (* 3 weights because 3rd one for the bias *)
   Percep.init_rand 3
 
-let print_weights p =
+let _print_weights p =
   print_string "percep_weights = ";
   Array.iter (fun v -> Printf.printf "%f," v) Percep.(p.weights);
   print_newline ()
 
+let nn = Neural_net.create 2 2 1
+
 let () =
-  Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5; 1.0 |])
+  Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5; 1.0 |]);
+  let res = Neural_net.feedforward nn [| 1.0; 0.0 |] in
+  Array.iter (fun v -> Printf.printf "%f," v) res;
+  print_newline ()
 
 let _transposed = Linalg.mat_init 3 2 (fun _ _ -> 0.0) |> Linalg.mat_transpose
 let line_f x = (0.3 *. x) +. 0.2
@@ -90,8 +95,7 @@ let plot_labeled_points ?(show_guessed_line = false) points chart_id desc oc =
 
 let train_on_all_points () =
   let open Yx_classifier_data in
-  List.iter (fun v -> Percep.train percep [| v.x; v.y; 1.0 |] v.label) points;
-  print_weights percep
+  List.iter (fun v -> Percep.train percep [| v.x; v.y; 1.0 |] v.label) points
 
 let guess_points () =
   List.fold_left
