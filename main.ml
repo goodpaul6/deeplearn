@@ -11,6 +11,7 @@ let print_weights p =
 let () =
   Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5; 1.0 |])
 
+let _transposed = Linalg.mat_init 3 2 (fun _ _ -> 0.0) |> Linalg.mat_transpose
 let line_f x = (0.3 *. x) +. 0.2
 
 let points =

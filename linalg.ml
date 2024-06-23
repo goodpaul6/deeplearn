@@ -5,16 +5,23 @@ type matrix = { rows : int; cols : int; data : float array }
 
 let ( $. ) mat (row, col) = mat.data.((row * mat.cols) + col)
 
-let mat_of_arrays arrs =
-  let rows = Array.length arrs in
-  let cols = Array.length arrs.(0) in
+let mat_init rows cols f =
   let data =
     Array.init (rows * cols) (fun i ->
         let r = i / cols in
         let c = i mod cols in
-        arrs.(c).(r))
+        f r c)
   in
   { rows; cols; data }
+
+let mat_of_arrays arrs =
+  assert (Array.length arrs > 0);
+  let rows = Array.length arrs in
+  let cols = Array.length arrs.(0) in
+  mat_init rows cols (fun row col -> arrs.(col).(row))
+
+let mat_transpose mat =
+  mat_init mat.cols mat.rows (fun t_row t_col -> mat $. (t_col, t_row))
 
 let mul_mat_vec mat vec =
   Array.init (Array.length vec) (fun row ->
