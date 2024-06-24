@@ -9,13 +9,7 @@ let _print_weights p =
   print_newline ()
 
 let nn = Neural_net.create 2 2 1
-
-let () =
-  Printf.printf "percep = %f\n" (Percep.guess percep [| -1.0; 0.5; 1.0 |]);
-  let res = Neural_net.feedforward nn [| 1.0; 0.0 |] in
-  Array.iter (fun v -> Printf.printf "%f," v) res;
-  print_newline ()
-
+let _ = Neural_net.train nn [| 1.0; 0.0 |] [| 1.0 |]
 let _transposed = Linalg.mat_init 3 2 (fun _ _ -> 0.0) |> Linalg.mat_transpose
 let line_f x = (0.3 *. x) +. 0.2
 

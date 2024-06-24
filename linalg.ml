@@ -23,6 +23,13 @@ let mat_of_arrays arrs =
 let mat_transpose mat =
   mat_init mat.cols mat.rows (fun t_row t_col -> mat $. (t_col, t_row))
 
+let mat_fold_left_row f row init t =
+  let value = ref init in
+  for col = 0 to t.cols - 1 do
+    value := f !value (t $. (row, col))
+  done;
+  !value
+
 let mul_mat_vec mat vec =
   assert (Array.length vec = mat.cols);
   Array.init mat.rows (fun row ->
@@ -33,6 +40,7 @@ let mul_mat_vec mat vec =
       !sum)
 
 let add_vec_vec a b = Array.init (Array.length a) (fun i -> a.(i) +. b.(i))
+let sub_vec_vec a b = Array.init (Array.length a) (fun i -> a.(i) -. b.(i))
 
 let dot_vec_vec a b =
   let sum = ref 0.0 in
@@ -40,3 +48,27 @@ let dot_vec_vec a b =
     sum := !sum +. (a.(i) *. b.(i))
   done;
   !sum
+
+let mat_print t =
+  for i = 0 to t.rows - 1 do
+    print_string "| ";
+    for j = 0 to t.cols - 1 do
+      Printf.printf "%f " (t $. (i, j))
+    done;
+    print_string "|\n"
+  done
+
+let vec_print t =
+  print_string "| ";
+  for i = 0 to Array.length t - 1 do
+    Printf.printf "%f " t.(i)
+  done;
+  print_string "|\n"
+
+let mat_print_with_label t label =
+  Printf.printf "%s =\n" label;
+  mat_print t
+
+let vec_print_with_label t label =
+  Printf.printf "%s = " label;
+  vec_print t

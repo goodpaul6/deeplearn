@@ -41,3 +41,29 @@ let feedforward t inputs =
     values := layer_output
   done;
   !values
+
+let train t inputs targets =
+  let outputs = feedforward t inputs in
+  let errors = ref (La.sub_vec_vec targets outputs) in
+  La.vec_print_with_label inputs "inputs";
+  La.vec_print_with_label targets "targets";
+  La.vec_print_with_label outputs "outputs";
+  La.vec_print_with_label !errors "errors";
+  for i = Array.length t.weights - 1 downto 0 do
+    La.mat_print_with_label t.weights.(i) (Printf.sprintf "weights_%i" i);
+    (* We have to compute the weighted error from each output node. Since each row r in the weights
+       corresponds to an output, and each column c to a hidden node,
+       the error(c) = sum_over_every_r ( w_rc / sum_of_row(r) * error_r ) *)
+    let incoming_node_count = La.(t.weights.(i).cols) in
+    let back_errors = Array.init incoming_node_count (fun _ -> 0.0) in
+    for c = 0 to incoming_node_count - 1 do
+      for r = 0 to Array.length !errors - 1 do
+        let sum_of_row = La.mat_fold_left_row ( +. ) r 0.0 t.weights.(i) in
+        let w_rc = La.(t.weights.(i) $. (r, c)) in
+        back_errors.(c) <- back_errors.(c) +. (w_rc /. sum_of_row *. !errors.(r))
+      done
+    done;
+    La.vec_print_with_label back_errors (Printf.sprintf "errors_%i" i);
+    errors := back_errors
+  done;
+  !errors
