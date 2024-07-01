@@ -8,9 +8,31 @@ let _print_weights p =
   Array.iter (fun v -> Printf.printf "%f," v) Percep.(p.weights);
   print_newline ()
 
-let nn = Neural_net.create 2 2 1
-let _ = Neural_net.train nn [| 1.0; 0.0 |] [| 1.0 |]
-let _transposed = Linalg.mat_init 3 2 (fun _ _ -> 0.0) |> Linalg.mat_transpose
+let nn = Neural_net.create 2 3 1
+
+let training_data =
+  [|
+    ([| 0.0; 0.0 |], [| 0.0 |]);
+    ([| 1.0; 0.0 |], [| 1.0 |]);
+    ([| 0.0; 1.0 |], [| 1.0 |]);
+    ([| 1.0; 1.0 |], [| 0.0 |]);
+  |]
+
+let _ =
+  for _ = 1 to 50_000 do
+    let idx = Random.int (Array.length training_data) in
+    let inputs, targets = training_data.(idx) in
+    Neural_net.train nn inputs targets
+  done;
+  let guess = Neural_net.feedforward nn [| 0.0; 0.0 |] in
+  Linalg.vec_print_with_label guess "guess_0_0";
+  let guess = Neural_net.feedforward nn [| 1.0; 0.0 |] in
+  Linalg.vec_print_with_label guess "guess_1_0";
+  let guess = Neural_net.feedforward nn [| 0.0; 1.0 |] in
+  Linalg.vec_print_with_label guess "guess_0_1";
+  let guess = Neural_net.feedforward nn [| 1.0; 1.0 |] in
+  Linalg.vec_print_with_label guess "guess_1_1"
+
 let line_f x = (0.3 *. x) +. 0.2
 
 let points =
